@@ -100,6 +100,7 @@
             setTimeout(function () {
                 let index;
                 if (isCheating) {
+                    // 强制返回 "机械键盘"
                     index = products.findIndex(product => product.name === "机械键盘");
                     if (index !== -1) {
                         var response = { id: 1, name: products[index].name, index: index };
@@ -145,35 +146,38 @@
             location.reload();
         });
 
-        // 处理鼠标和触摸事件
-        const lotteryHandler = document.getElementById('lottery-handler');
+        // 双击事件：只要双击触发抽奖，且强制抽到 "机械键盘"
+        document.getElementById('lottery-handler').addEventListener('dblclick', function () {
+            // 双击时设置作弊状态，使得抽奖强制中 "机械键盘"
+            isCheating = true;
+            // 执行抽奖逻辑
+            const lotteryHandler = document.getElementById('lottery-handler');
+            const lotteryInterface = new Lottery(document.getElementById('lottery'), {
+                handler: lotteryHandler,
+                handlerCallback: function (_interface) {
+                    _ajax(function (response) {
+                        _interface.stop(response.index, function () {
+                            alert('恭喜你中得:' + response.name);
 
-        // 按下鼠标或触摸，不做任何操作
-        function handleStart(event) {
-            // 阻止触摸事件的默认行为
-            if (event.type === 'touchstart') {
-                event.preventDefault(); // 阻止默认行为，避免长按触发其他浏览器事件
-            }
-        }
+                            const index = products.findIndex(product => product.name === response.name);
+                            if (index !== -1) {
+                                products.splice(index, 1);
+                            }
 
-        // 松开鼠标或手指时触发抽奖
-        function handleEnd() {
-            // 在松开时才触发抽奖
-            console.log("触发抽奖");
-        }
+                            localStorage.setItem('products', JSON.stringify(products));
 
-        // 监听鼠标按下和触摸开始事件，不做操作
-        lotteryHandler.addEventListener('mousedown', handleStart);
-        lotteryHandler.addEventListener('touchstart', handleStart);
-
-        // 监听鼠标松开和触摸结束事件，触发抽奖
-        lotteryHandler.addEventListener('mouseup', handleEnd);
-        lotteryHandler.addEventListener('touchend', handleEnd);
-
-        // 监听鼠标离开和触摸取消事件，取消触发
-        lotteryHandler.addEventListener('mouseleave', handleEnd);
-        lotteryHandler.addEventListener('touchcancel', handleEnd);
-
+                            location.reload();
+                        });
+                    });
+                },
+                images: {
+                    width: 22,
+                    height: 29,
+                    y: '88%',
+                },
+                products: products
+            });
+        });
     </script>
 </body>
 
