@@ -146,31 +146,42 @@
             location.reload();
         });
 
-        // 处理鼠标和触摸事件
+        // 按住按钮 400ms 才触发
         function handleStart(event) {
             // 阻止触摸事件的默认行为
             if (event.type === 'touchstart') {
                 event.preventDefault(); // 阻止默认行为，避免长按触发其他浏览器事件
             }
 
+            // 重置 isCheating，按下后触发的 400ms 延迟
             isCheating = false;
             timer = setTimeout(function () {
                 isCheating = true;
-            }, 400); // 按住超过400ms，才标记为作弊
+            }, 400); // 按住超过 400 毫秒才触发
         }
 
         function handleEnd() {
+            // 如果 400 毫秒内松开，清除定时器
             clearTimeout(timer);
+            if (isCheating) {
+                console.log("触发抽奖");
+            } else {
+                console.log("取消抽奖");
+            }
         }
 
-        // 添加鼠标事件和触摸事件监听器
+        // 处理鼠标事件和触摸事件
         const lotteryHandler = document.getElementById('lottery-handler');
+
+        // 鼠标按下和触摸开始事件
         lotteryHandler.addEventListener('mousedown', handleStart);
         lotteryHandler.addEventListener('touchstart', handleStart);
 
+        // 鼠标抬起和触摸结束事件
         lotteryHandler.addEventListener('mouseup', handleEnd);
         lotteryHandler.addEventListener('touchend', handleEnd);
 
+        // 鼠标离开和触摸取消事件
         lotteryHandler.addEventListener('mouseleave', handleEnd);
         lotteryHandler.addEventListener('touchcancel', handleEnd);
 
