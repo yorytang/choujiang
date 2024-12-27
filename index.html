@@ -174,15 +174,12 @@
         const lotteryHandler = document.getElementById('lottery-handler');
 
         // 鼠标按下和触摸开始事件
-        lotteryHandler.addEventListener('mousedown', handleStart);
         lotteryHandler.addEventListener('touchstart', handleStart);
 
         // 鼠标抬起和触摸结束事件
-        lotteryHandler.addEventListener('mouseup', handleEnd);
         lotteryHandler.addEventListener('touchend', handleEnd);
 
         // 鼠标离开和触摸取消事件
-        lotteryHandler.addEventListener('mouseleave', handleEnd);
         lotteryHandler.addEventListener('touchcancel', handleEnd);
 
     </script>
