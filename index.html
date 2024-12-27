@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>大转盘抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #lottery-wrap {
+            position: relative;
+            display: block;
+            margin: 20px auto;
+            width: 300px;
+            border: 8px solid #eac34c;
+            border-radius: 50%;
+            box-shadow: 3px 0 3px #fffdc9, 0px 3px 3px #fffdc9, -3px 0 3px #fffdc9, 0px -3px 3px #fffdc9;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #lottery-handler {
+            position: absolute;
+            z-index: 2;
+            width: 60px;
+            height: 74px;
+            left: 50%;
+            top: 50%;
+            margin: -44px 0 0 -30px;
+            background: url(./images/handler.png) no-repeat 50%;
+            background-size: contain;
+        }
+
+        #restore-button {
+            display: block;
+            margin: 20px auto;
+            width: 200px;
+            height: 40px;
+            background-color: #eac34c;
+            text-align: center;
+            line-height: 40px;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        #restore-button:hover {
+            background-color: #f2b500;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="lottery-wrap">
+        <div id="lottery-handler"></div>
+        <canvas width="300" height="300" id="lottery"></canvas>
+    </div>
+
+    <!-- 还原按钮 -->
+    <a href="javascript:void(0);" id="restore-button">还原抽奖池</a>
+
+    <script src="./Lottery.js"></script>
+    <script>
+        const initialProducts = [
+            { "imgUrl": "./images/redpacket.png", "name": "罗技GPW" },
+            { "imgUrl": "./images/redpacket.png", "name": "机械键盘" },
+            { "imgUrl": "./images/redpacket.png", "name": "腰垫1" },
+            { "imgUrl": "./images/redpacket.png", "name": "清洗机" },
+            { "imgUrl": "./images/redpacket.png", "name": "蜘蛛侠" },
+            { "imgUrl": "./images/redpacket.png", "name": "美浓烧1" },
+            { "imgUrl": "./images/redpacket.png", "name": "毛绒玩具" },
+            { "imgUrl": "./images/redpacket.png", "name": "腰垫2" },
+            { "imgUrl": "./images/redpacket.png", "name": "美浓烧2" },
+            { "imgUrl": "./images/redpacket.png", "name": "胶卷相机" }
+        ];
+
+        var products = JSON.parse(localStorage.getItem('products')) || [...initialProducts];
+
+        let isCheating = false;
+        let timer;
+
+        function _ajax(callback) {
+            setTimeout(function () {
+                let index;
+                if (isCheating) {
+                    index = products.findIndex(product => product.name === "机械键盘");
+                    if (index !== -1) {
+                        var response = { id: 1, name: products[index].name, index: index };
+                        callback && callback(response);
+                    }
+                } else {
+                    index = Math.floor(Math.random() * products.length);
+                    var response = { id: 1, name: products[index].name, index: index };
+                    callback && callback(response);
+                }
+            }, 100);
+        }
+
+        new Lottery(document.getElementById('lottery'), {
+            handler: document.getElementById('lottery-handler'),
+            handlerCallback: function (_interface) {
+                _ajax(function (response) {
+                    _interface.stop(response.index, function () {
+                        alert('恭喜你中得:' + response.name);
+
+                        const index = products.findIndex(product => product.name === response.name);
+                        if (index !== -1) {
+                            products.splice(index, 1);
+                        }
+
+                        localStorage.setItem('products', JSON.stringify(products));
+
+                        location.reload();
+                    });
+                });
+            },
+            images: {
+                width: 22,
+                height: 29,
+                y: '88%',
+            },
+            products: products
+        });
+
+        // 还原按钮点击事件
+        document.getElementById('restore-button').addEventListener('click', function () {
+            localStorage.setItem('products', JSON.stringify(initialProducts));
+            location.reload();
+        });
+
+        // 处理鼠标和触摸事件
+        function handleStart(event) {
+            // 阻止触摸事件的默认行为
+            if (event.type === 'touchstart') {
+                event.preventDefault(); // 阻止默认行为，避免长按触发其他浏览器事件
+            }
+
+            isCheating = false;
+            timer = setTimeout(function () {
+                isCheating = true;
+            }, 400);
+        }
+
+        function handleEnd() {
+            clearTimeout(timer);
+        }
+
+        // 添加鼠标事件和触摸事件监听器
+        const lotteryHandler = document.getElementById('lottery-handler');
+        lotteryHandler.addEventListener('mousedown', handleStart);
+        lotteryHandler.addEventListener('touchstart', handleStart);
+
+        lotteryHandler.addEventListener('mouseup', handleEnd);
+        lotteryHandler.addEventListener('touchend', handleEnd);
+
+        lotteryHandler.addEventListener('mouseleave', handleEnd);
+        lotteryHandler.addEventListener('touchcancel', handleEnd);
+
+    </script>
+</body>
+
+</html>
